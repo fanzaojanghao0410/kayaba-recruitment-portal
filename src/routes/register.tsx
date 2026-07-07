@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, ShieldCheck, UserPlus } from "lucide-react";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -142,7 +143,7 @@ function RegisterPage() {
   );
 }
 
-function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
+function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }) {
   return (
     <div>
       <Label>{label}</Label>

@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Save, UserRound } from "lucide-react";
@@ -110,7 +111,7 @@ function ProfilePage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
       <Label>{label}</Label>

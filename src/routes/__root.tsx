@@ -45,11 +45,11 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => { router.invalidate(); reset(); }}
-            className="rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+            className="border border-primary bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
           >
             Coba lagi
           </button>
-          <a href="/" className="rounded-full border border-input px-4 py-2 text-sm font-medium hover:bg-surface-muted">
+          <a href="/" className="border border-input px-4 py-2 text-sm font-medium hover:bg-surface-muted">
             Beranda
           </a>
         </div>
@@ -68,6 +68,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "KYB Career Portal — PT Kayaba Indonesia" },
       { property: "og:description", content: "Portal rekrutmen resmi PT Kayaba Indonesia." },
       { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
   }),
