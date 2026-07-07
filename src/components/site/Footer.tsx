@@ -12,18 +12,18 @@ const footerLinks = [
 
 export function Footer() {
   return (
-    <footer className="mt-20 bg-secondary text-secondary-foreground">
+    <footer className="mt-16 border-t border-border bg-secondary text-secondary-foreground">
       <div className="container-page py-14">
         <div className="grid gap-10 lg:grid-cols-[1.5fr_0.8fr_1.2fr]">
           <div>
-            <div className="inline-flex rounded-md bg-white p-2">
+            <div className="inline-flex border border-white/15 bg-white p-2">
               <Logo size="md" />
             </div>
             <p className="mt-5 max-w-xl text-sm leading-7 text-secondary-foreground/72">
               {companyProfile.summary} Portal ini digunakan untuk publikasi lowongan, seleksi
               kandidat, dan komunikasi rekrutmen yang lebih tertata.
             </p>
-            <div className="mt-6 inline-flex items-center gap-2 rounded-md border border-white/15 px-3 py-2 text-xs font-semibold text-secondary-foreground/82">
+            <div className="mt-6 inline-flex items-center gap-2 border border-white/15 px-3 py-2 text-xs font-semibold text-secondary-foreground/82">
               <ShieldCheck className="h-4 w-4 text-primary" />
               Hati-hati penipuan. Rekrutmen KYB tidak memungut biaya.
             </div>

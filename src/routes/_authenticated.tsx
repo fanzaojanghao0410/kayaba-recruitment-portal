@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Logo } from "@/components/site/Logo";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FileText, User, Briefcase, Shield, LogOut, Menu, Users } from "lucide-react";
+import { LayoutDashboard, Mail, User, Briefcase, LogOut, Menu, Users } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ROLES } from "@/constants";
@@ -48,6 +48,7 @@ function AuthLayout() {
     items.push({ to: "/admin/applicants", icon: Users, label: "Pelamar" });
   } else {
     // Applicant users see different menu
+    items.push({ to: "/applications", icon: Mail, label: "Mail Box" });
     items.push({ to: "/profile", icon: User, label: "Profil Saya" });
     items.push({ to: "/jobs", icon: Briefcase, label: "Lowongan" });
   }
@@ -78,11 +79,7 @@ function AuthLayout() {
   // Admin dashboard layout
   if (isAdminOrHRRoute) {
     return (
-      <div className="min-h-screen bg-surface">
-        <div className="p-4 md:p-8 max-w-7xl mx-auto">
-          <Outlet />
-        </div>
-      </div>
+      <Outlet />
     );
   }
 
@@ -97,7 +94,7 @@ function AuthLayout() {
           </Link>
           <button
             onClick={() => setOpen(!open)}
-            className="p-2 rounded-full hover:bg-surface-muted"
+            className="border border-border p-2 hover:bg-surface-muted"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -127,7 +124,7 @@ function AuthLayout() {
                   to={it.to}
                   onClick={() => setOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition",
+                    "flex items-center gap-3 border border-transparent px-3 py-2.5 text-sm font-medium transition",
                     active
                       ? "bg-accent text-primary"
                       : "text-muted-foreground hover:bg-surface-muted hover:text-foreground"
@@ -140,7 +137,7 @@ function AuthLayout() {
           </nav>
           <div className="p-4 border-t border-border">
             <div className="flex items-center gap-3 mb-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary font-semibold">
+              <div className="flex h-9 w-9 items-center justify-center border border-primary/25 bg-accent text-primary font-semibold">
                 {user.email?.[0]?.toUpperCase()}
               </div>
               <div className="min-w-0 flex-1">

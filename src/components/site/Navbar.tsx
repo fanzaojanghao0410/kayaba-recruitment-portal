@@ -4,6 +4,7 @@ import {
   BriefcaseBusiness,
   LayoutDashboard,
   LogOut,
+  Mail,
   Menu,
   ShieldCheck,
   UserRound,
@@ -34,7 +35,7 @@ export function Navbar() {
   const canAccessAdmin = user && (hasRole("admin") || hasRole("hr"));
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-white/92 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/96 backdrop-blur-xl">
       <div className="hidden border-b border-border/70 bg-secondary text-secondary-foreground md:block">
         <div className="container-page flex h-9 items-center justify-between text-xs">
           <div className="flex items-center gap-2 font-semibold">
@@ -89,9 +90,15 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem asChild>
+                  <Link to="/applications" className="cursor-pointer">
+                    <Mail className="mr-2 h-4 w-4" />
+                    Mail Box Lamaran
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to="/jobs" className="cursor-pointer">
                     <BriefcaseBusiness className="mr-2 h-4 w-4" />
-                    Lowongan Saya
+                    Cari Lowongan
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -124,7 +131,7 @@ export function Navbar() {
       </div>
 
       {open && (
-        <div className="border-t border-border bg-white lg:hidden">
+        <div className="border-t border-border bg-background lg:hidden">
           <div className="container-page grid gap-2 py-4">
             {links.map((item) => (
               <Link
@@ -138,17 +145,21 @@ export function Navbar() {
             ))}
             <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-4">
               {user ? (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    signOut();
-                    setOpen(false);
-                  }}
-                  className="col-span-2"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Keluar
-                </Button>
+                <>
+                  <Button variant="outline" asChild onClick={() => setOpen(false)}>
+                    <Link to="/applications">Mail Box</Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      signOut();
+                      setOpen(false);
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Keluar
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button variant="outline" asChild onClick={() => setOpen(false)}>
