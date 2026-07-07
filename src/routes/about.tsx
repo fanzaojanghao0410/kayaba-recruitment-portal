@@ -31,7 +31,7 @@ const milestones = [
 function AboutPage() {
   return (
     <SiteShell>
-      <section className="bg-white">
+      <section className="bg-surface">
         <div className="container-page grid gap-10 py-14 md:py-16 lg:grid-cols-[0.95fr_1.05fr] lg:items-center">
           <div>
             <span className="eyebrow">
@@ -61,7 +61,7 @@ function AboutPage() {
             <img
               src={aboutImg}
               alt="Fasilitas PT Kayaba Indonesia"
-              className="aspect-[16/10] rounded-lg border border-border object-cover shadow-md"
+              className="aspect-[16/10] border border-border object-cover shadow-md"
             />
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="industrial-card p-4">
@@ -124,19 +124,19 @@ function AboutPage() {
       <section className="dark-panel py-16">
         <div className="container-page grid gap-10 lg:grid-cols-[1fr_0.9fr] lg:items-center">
           <div>
-            <span className="eyebrow text-white/70">
+            <span className="eyebrow text-secondary-foreground/70">
               <Factory className="h-4 w-4" />
               Product Scope
             </span>
-            <h2 className="mt-4 text-3xl font-extrabold text-white">
+            <h2 className="mt-4 text-3xl font-extrabold text-secondary-foreground">
               Produk yang menggerakkan industri otomotif.
             </h2>
             <div className="mt-7 grid gap-3 sm:grid-cols-2">
               {productLines.map((item) => (
-                <div key={item.title} className="rounded-lg border border-white/12 bg-white/8 p-4">
+                <div key={item.title} className="border border-secondary-foreground/12 bg-secondary-foreground/8 p-4">
                   <item.icon className="h-5 w-5 text-primary" />
-                  <h3 className="mt-3 font-extrabold text-white">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-white/68">{item.copy}</p>
+                  <h3 className="mt-3 font-extrabold text-secondary-foreground">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-secondary-foreground/68">{item.copy}</p>
                 </div>
               ))}
             </div>
@@ -144,7 +144,7 @@ function AboutPage() {
           <img
             src={heroImg}
             alt="Produksi shock absorber"
-            className="aspect-[4/3] rounded-lg border border-white/10 object-cover"
+            className="aspect-[4/3] border border-secondary-foreground/10 object-cover"
           />
         </div>
       </section>

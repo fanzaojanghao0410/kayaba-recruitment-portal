@@ -141,7 +141,7 @@ function JobDetailPage() {
     return (
       <SiteShell>
         <div className="container-page py-16">
-          <div className="h-80 animate-pulse rounded-lg bg-muted" />
+          <div className="h-80 animate-pulse bg-muted" />
         </div>
       </SiteShell>
     );
@@ -168,7 +168,7 @@ function JobDetailPage() {
 
   return (
     <SiteShell>
-      <section className="border-b border-border bg-white">
+      <section className="border-b border-border bg-surface">
         <div className="container-page py-10 md:py-14">
           <Button variant="ghost" asChild className="-ml-3 mb-6">
             <Link to="/jobs">
@@ -310,7 +310,7 @@ function JobDetailPage() {
           <div className="grid gap-3 md:grid-cols-5">
             {hiringSteps.map((step, index) => (
               <div key={step.title} className="industrial-card p-4">
-                <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary font-extrabold text-primary-foreground">
+                <div className="flex h-9 w-9 items-center justify-center bg-primary font-extrabold text-primary-foreground">
                   {index + 1}
                 </div>
                 <h3 className="mt-4 font-extrabold">{step.title}</h3>

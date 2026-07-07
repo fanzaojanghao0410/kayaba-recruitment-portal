@@ -74,7 +74,7 @@ function HomePage() {
 
   return (
     <SiteShell>
-      <section className="relative overflow-hidden border-b border-border bg-white">
+      <section className="relative overflow-hidden border-b border-border bg-surface">
         <div className="absolute inset-0 bg-grid opacity-60" />
         <div className="container-page relative grid min-h-[calc(100vh-7rem)] gap-10 py-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
           <div className="max-w-3xl">
@@ -101,7 +101,7 @@ function HomePage() {
                 <Link to="/about">Profil Perusahaan</Link>
               </Button>
             </div>
-            <div className="mt-8 flex max-w-2xl items-start gap-3 rounded-md border border-primary/20 bg-accent/70 p-4 text-sm text-accent-foreground">
+            <div className="mt-8 flex max-w-2xl items-start gap-3 border border-primary/20 bg-accent/70 p-4 text-sm text-accent-foreground">
               <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
               <p>
                 Proses rekrutmen PT Kayaba Indonesia tidak memungut biaya. Abaikan pihak yang
@@ -112,14 +112,14 @@ function HomePage() {
 
           <div className="relative">
             <div className="absolute -left-4 top-8 hidden h-24 w-8 bg-primary lg:block" />
-            <div className="overflow-hidden rounded-lg border border-border shadow-lg">
+            <div className="overflow-hidden border border-border shadow-lg">
               <img
                 src={heroImg}
                 alt="Fasilitas manufaktur PT Kayaba Indonesia"
                 className="h-[34rem] w-full object-cover"
               />
             </div>
-            <div className="absolute bottom-5 left-5 right-5 grid gap-3 rounded-md bg-white/94 p-4 shadow-lg backdrop-blur md:grid-cols-3">
+            <div className="absolute bottom-5 left-5 right-5 grid gap-3 border border-border bg-background/94 p-4 shadow-lg backdrop-blur md:grid-cols-3">
               {corporateStats.slice(0, 3).map((item) => (
                 <div key={item.label}>
                   <div className="text-xl font-extrabold text-foreground">{item.value}</div>
@@ -147,23 +147,23 @@ function HomePage() {
       </section>
 
       <section className="container-page pb-16">
-        <div className="rounded-lg border border-border bg-secondary p-5 text-secondary-foreground shadow-lg md:p-8">
+        <div className="border border-border bg-secondary p-5 text-secondary-foreground shadow-lg md:p-8">
           <div className="grid gap-7 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
             <div>
-              <span className="eyebrow text-white/70">Candidate Experience</span>
-              <h2 className="mt-3 text-3xl font-extrabold text-white">
+              <span className="eyebrow text-secondary-foreground/70">Candidate Experience</span>
+              <h2 className="mt-3 text-3xl font-extrabold text-secondary-foreground">
                 Dirancang untuk mengurangi ragu, memperjelas pilihan, dan mempercepat keputusan.
               </h2>
-              <p className="mt-4 leading-7 text-white/70">
+              <p className="mt-4 leading-7 text-secondary-foreground/70">
                 Struktur halaman memakai prinsip psikologi desain: social proof di awal, pilihan
                 kandidat yang jelas, proses bertahap, dan pesan keamanan yang terus terlihat.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {uxTrustSignals.map((item) => (
-                <div key={item.title} className="rounded-md border border-white/12 bg-white/8 p-4">
-                  <div className="text-sm font-extrabold text-white">{item.title}</div>
-                  <p className="mt-2 text-sm leading-6 text-white/68">{item.copy}</p>
+                <div key={item.title} className="border border-secondary-foreground/15 bg-secondary-foreground/8 p-4">
+                  <div className="text-sm font-extrabold text-secondary-foreground">{item.title}</div>
+                  <p className="mt-2 text-sm leading-6 text-secondary-foreground/68">{item.copy}</p>
                 </div>
               ))}
             </div>
@@ -177,7 +177,7 @@ function HomePage() {
             <img
               src={aboutImg}
               alt="Area produksi KYB Indonesia"
-              className="aspect-[4/3] w-full rounded-lg border border-border object-cover shadow-md"
+              className="aspect-[4/3] w-full border border-border object-cover shadow-md"
             />
           </div>
           <div>
@@ -262,8 +262,8 @@ function HomePage() {
         <div className="container-page">
           <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
             <div>
-              <span className="eyebrow text-white/70">Open Positions</span>
-              <h2 className="mt-3 text-3xl font-extrabold text-white">Lowongan prioritas</h2>
+              <span className="eyebrow text-secondary-foreground/70">Open Positions</span>
+              <h2 className="mt-3 text-3xl font-extrabold text-secondary-foreground">Lowongan prioritas</h2>
             </div>
             <Button variant="secondary" asChild>
               <Link to="/jobs">
@@ -274,7 +274,7 @@ function HomePage() {
           </div>
           <div className="mt-8 grid gap-4 lg:grid-cols-3">
             {(jobs ?? []).map((job) => (
-              <Card key={job.id} className="border-white/10 bg-white p-5 text-foreground">
+              <Card key={job.id} className="border-secondary-foreground/10 bg-background p-5 text-foreground">
                 <div className="flex items-start justify-between gap-4">
                   <Badge className="bg-primary text-primary-foreground">{job.department}</Badge>
                   {job.is_featured && <Badge variant="outline">Featured</Badge>}
@@ -308,7 +308,7 @@ function HomePage() {
               </Card>
             ))}
             {(jobs ?? []).length === 0 && (
-              <Card className="border-white/10 bg-white p-6 text-foreground lg:col-span-3">
+              <Card className="border-secondary-foreground/10 bg-background p-6 text-foreground lg:col-span-3">
                 <h3 className="font-extrabold">Belum ada lowongan yang sedang dibuka.</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Silakan cek kembali portal karier secara berkala.
@@ -334,7 +334,7 @@ function HomePage() {
           <div className="grid gap-3">
             {hiringSteps.map((step, index) => (
               <div key={step.title} className="industrial-card flex gap-4 p-4">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary font-extrabold text-primary-foreground">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-primary font-extrabold text-primary-foreground">
                   {index + 1}
                 </div>
                 <div>
@@ -348,7 +348,7 @@ function HomePage() {
       </section>
 
       <section className="container-page pb-16">
-        <div className="grid gap-6 rounded-lg border border-border bg-white p-6 shadow-sm md:grid-cols-[1fr_auto] md:items-center md:p-8">
+        <div className="grid gap-6 border border-border bg-card p-6 shadow-sm md:grid-cols-[1fr_auto] md:items-center md:p-8">
           <div>
             <div className="flex items-center gap-2 text-sm font-bold text-primary">
               <CheckCircle2 className="h-4 w-4" />

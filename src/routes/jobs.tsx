@@ -101,7 +101,7 @@ function JobsPage() {
 
   return (
     <SiteShell>
-      <section className="border-b border-border bg-white">
+      <section className="border-b border-border bg-surface">
         <div className="container-page py-14 md:py-16">
           <div className="grid gap-8 lg:grid-cols-[1fr_0.6fr] lg:items-end">
             <div>
@@ -200,7 +200,7 @@ function JobsPage() {
         {isLoading ? (
           <div className="grid gap-4">
             {[0, 1, 2, 3].map((item) => (
-              <div key={item} className="h-36 animate-pulse rounded-lg bg-muted" />
+              <div key={item} className="h-36 animate-pulse bg-muted" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
