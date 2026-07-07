@@ -49,7 +49,7 @@ function AdminLoginPage() {
     if (!userId) return;
 
     const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-    const canAccessAdmin = roles?.some((item) => item.role === "admin" || item.role === "hr");
+    const canAccessAdmin = roles?.some((item: { role: string }) => item.role === "admin" || item.role === "hr");
 
     if (!canAccessAdmin) {
       await supabase.auth.signOut();
@@ -64,21 +64,21 @@ function AdminLoginPage() {
   return (
     <SiteShell>
       <section className="container-page grid gap-8 py-12 md:py-16 lg:grid-cols-[1fr_0.9fr] lg:items-center">
-        <div className="dark-panel rounded-lg p-7 md:p-10">
-          <span className="eyebrow text-white/70">
+        <div className="dark-panel border border-border p-7 md:p-10">
+          <span className="eyebrow text-secondary-foreground/70">
             <LockKeyhole className="h-4 w-4" />
             Restricted Access
           </span>
-          <h1 className="mt-4 text-4xl font-extrabold leading-tight text-white md:text-5xl">
+          <h1 className="mt-4 text-4xl font-extrabold leading-tight text-secondary-foreground md:text-5xl">
             HR Command Center untuk mengelola pipeline rekrutmen.
           </h1>
-          <p className="mt-5 max-w-2xl leading-8 text-white/68">
+          <p className="mt-5 max-w-2xl leading-8 text-secondary-foreground/68">
             Area ini dibuat untuk tim HR dan administrator: kelola lowongan, pantau kandidat,
             dokumentasikan catatan internal, dan jaga integritas proses seleksi.
           </p>
           <div className="mt-8 grid gap-3 sm:grid-cols-3">
             {["Role-based access", "Audit trail", "Candidate pipeline"].map((item) => (
-              <div key={item} className="rounded-md border border-white/12 bg-white/8 p-4 text-sm font-bold text-white">
+              <div key={item} className="border border-secondary-foreground/12 bg-secondary-foreground/8 p-4 text-sm font-bold text-secondary-foreground">
                 {item}
               </div>
             ))}
@@ -87,7 +87,7 @@ function AdminLoginPage() {
 
         <Card className="industrial-card p-6 md:p-8">
           <div className="mb-6">
-            <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <div className="flex h-11 w-11 items-center justify-center bg-primary text-primary-foreground">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <h2 className="mt-5 text-2xl font-extrabold">Login HR/Admin</h2>

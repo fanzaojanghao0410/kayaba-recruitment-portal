@@ -53,7 +53,7 @@ function LoginPage() {
     }
 
     const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-    const canAccessAdmin = roles?.some((item) => item.role === "admin" || item.role === "hr");
+    const canAccessAdmin = roles?.some((item: { role: string }) => item.role === "admin" || item.role === "hr");
     toast.success("Berhasil masuk.");
     navigate({ to: canAccessAdmin ? "/admin" : "/jobs" });
   };
@@ -85,7 +85,7 @@ function LoginPage() {
 
         <Card className="industrial-card p-6 md:p-8">
           <div className="mb-6">
-            <div className="flex h-11 w-11 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <div className="flex h-11 w-11 items-center justify-center bg-primary text-primary-foreground">
               <ShieldCheck className="h-5 w-5" />
             </div>
             <h2 className="mt-5 text-2xl font-extrabold">Masuk Kandidat</h2>

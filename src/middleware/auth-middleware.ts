@@ -2,10 +2,17 @@
  * Authentication middleware for server-side route protection
  */
 
-import { createMiddlewareClient } from '@supabase/auth-helpers-remix';
-import { Request, Response } from '@web/express';
+type ResponseLike = {
+  status: (code: number) => { json: (body: unknown) => unknown };
+  set: (name: string, value: string) => void;
+};
 
-export interface AuthRequest extends Request {
+type RequestLike = {
+  headers: { authorization?: string };
+  ip?: string;
+};
+
+export interface AuthRequest extends RequestLike {
   auth?: {
     user: { id: string; email: string };
     roles: string[];
@@ -15,7 +22,7 @@ export interface AuthRequest extends Request {
 /**
  * Middleware to verify JWT token and attach user/roles to request
  */
-export async function authMiddleware(req: AuthRequest, res: Response, next: () => void) {
+export async function authMiddleware(req: AuthRequest, res: ResponseLike, next: () => void) {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
@@ -37,7 +44,7 @@ export async function authMiddleware(req: AuthRequest, res: Response, next: () =
 /**
  * Middleware to require authentication
  */
-export async function requireAuth(req: AuthRequest, res: Response, next: () => void) {
+export async function requireAuth(req: AuthRequest, res: ResponseLike, next: () => void) {
   if (!req.auth?.user) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
@@ -48,7 +55,7 @@ export async function requireAuth(req: AuthRequest, res: Response, next: () => v
  * Middleware to require specific roles
  */
 export function requireRoles(...allowedRoles: string[]) {
-  return (req: AuthRequest, res: Response, next: () => void) => {
+  return (req: AuthRequest, res: ResponseLike, next: () => void) => {
     if (!req.auth?.user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -93,7 +100,7 @@ interface RateLimitStore {
 const rateLimitStore: RateLimitStore = {};
 
 export function rateLimit(maxRequests: number = 100, windowMs: number = 60 * 1000) {
-  return (req: AuthRequest, res: Response, next: () => void) => {
+  return (req: AuthRequest, res: ResponseLike, next: () => void) => {
     const key = req.ip || 'unknown';
     const now = Date.now();
     const userLimit = rateLimitStore[key];

@@ -140,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializeAuth();
 
     // Set up auth state listener
-    const { data: subscription } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange(async (_event: string, newSession: Session | null) => {
       if (!mounted) return;
 
       setSession(newSession);

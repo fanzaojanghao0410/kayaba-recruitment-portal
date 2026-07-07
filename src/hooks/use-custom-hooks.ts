@@ -55,7 +55,7 @@ export function useThrottle<T extends (...args: any[]) => any>(
  * Previous value hook - get previous value of a prop/state
  */
 export function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T>();
+  const ref = useRef<T | undefined>(undefined);
 
   useEffect(() => {
     ref.current = value;

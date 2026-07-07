@@ -1,51 +1,25 @@
+import type { ReactNode } from "react";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  Plus,
-  Search,
-  MoreVertical,
-  Edit,
-  Trash2,
-  Eye,
-  Copy,
-  CheckCircle2,
-  XCircle,
-  Users,
-  Calendar,
-  Building2,
-  MapPin,
-  Briefcase,
-} from "lucide-react";
-import { toast } from "sonner";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { Briefcase, CheckCircle2, Edit, Eye, MapPin, MoreVertical, Plus, Search, Trash2, Users, XCircle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/integrations/supabase/client";
+import { educationLabels, employmentTypeLabels, jobDepartments, jobStatusLabels } from "@/constants/company";
 
-interface Job {
+type Job = {
   id: string;
   title: string;
   department: string;
@@ -53,718 +27,376 @@ interface Job {
   employment_type: string;
   status: string;
   description: string | null;
+  requirements: string[] | null;
+  responsibilities: string[] | null;
+  min_education: string | null;
+  min_experience_years: number | null;
   min_salary: number | null;
   max_salary: number | null;
+  quota: number | null;
   deadline: string | null;
-  applications_count?: number;
-  created_at: string;
-  is_featured: boolean;
-}
-
-const employmentTypes: Record<string, string> = {
-  full_time: "Full Time",
-  part_time: "Part Time",
-  contract: "Kontrak",
-  internship: "Magang",
-  freelance: "Freelance",
+  is_featured: boolean | null;
+  applications?: Array<{ count: number }>;
 };
 
-const jobStatuses: Record<string, { label: string; color: string }> = {
-  draft: { label: "Draft", color: "bg-slate-100 text-slate-700" },
-  published: { label: "Published", color: "bg-emerald-100 text-emerald-700" },
-  closed: { label: "Closed", color: "bg-red-100 text-red-700" },
-  archived: { label: "Archived", color: "bg-gray-100 text-gray-700" },
+type FormData = {
+  title: string;
+  department: string;
+  location: string;
+  employment_type: string;
+  description: string;
+  requirements: string;
+  responsibilities: string;
+  min_education: string;
+  min_experience_years: string;
+  min_salary: string;
+  max_salary: string;
+  quota: string;
+  deadline: string;
+  status: string;
+};
+
+const emptyForm: FormData = {
+  title: "",
+  department: "Engineering",
+  location: "MM2100, Bekasi",
+  employment_type: "full_time",
+  description: "",
+  requirements: "",
+  responsibilities: "",
+  min_education: "s1",
+  min_experience_years: "0",
+  min_salary: "",
+  max_salary: "",
+  quota: "",
+  deadline: "",
+  status: "draft",
 };
 
 export function JobManagement() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dialogMode, setDialogMode] = useState<"create" | "edit" | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Job | null>(null);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
-
+  const [formData, setFormData] = useState<FormData>(emptyForm);
   const queryClient = useQueryClient();
 
-  // Form state
-  const [formData, setFormData] = useState({
-    title: "",
-    department: "",
-    location: "",
-    employment_type: "full_time",
-    description: "",
-    requirements: "",
-    responsibilities: "",
-    min_education: "s1",
-    min_experience_years: 0,
-    min_salary: "",
-    max_salary: "",
-    quota: "",
-    deadline: "",
-    status: "draft",
-  });
-
-  // Fetch jobs
   const { data: jobs, isLoading } = useQuery({
-    queryKey: ["admin-jobs", statusFilter, searchQuery],
+    queryKey: ["admin-jobs", statusFilter],
     queryFn: async () => {
       let query = supabase
         .from("jobs")
-        .select(`
-          *,
-          applications:applications(count)
-        `)
+        .select("*,applications:applications(count)")
         .order("created_at", { ascending: false });
-
-      if (statusFilter !== "all") {
-        query = query.eq("status", statusFilter);
-      }
-
-      if (searchQuery) {
-        query = query.ilike("title", `%${searchQuery}%`);
-      }
-
+      if (statusFilter !== "all") query = query.eq("status", statusFilter);
       const { data, error } = await query;
-
       if (error) throw error;
-
-      return (data || []).map((job: any) => ({
-        ...job,
-        applications_count: job.applications?.[0]?.count || 0,
-      })) as Job[];
+      return (data ?? []) as unknown as Job[];
     },
   });
 
-  // Create job mutation
-  const createJob = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const { error } = await supabase.from("jobs").insert({
-        title: data.title,
-        department: data.department,
-        location: data.location,
-        employment_type: data.employment_type,
-        description: data.description,
-        requirements: data.requirements.split("\n").filter(Boolean),
-        responsibilities: data.responsibilities.split("\n").filter(Boolean),
-        min_education: data.min_education,
-        min_experience_years: parseInt(data.min_experience_years.toString()) || 0,
-        min_salary: data.min_salary ? parseInt(data.min_salary) : null,
-        max_salary: data.max_salary ? parseInt(data.max_salary) : null,
-        quota: data.quota ? parseInt(data.quota) : null,
-        deadline: data.deadline || null,
-        status: data.status,
-      });
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Lowongan berhasil dibuat");
-      setIsCreateDialogOpen(false);
-      resetForm();
-      queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
-    },
-    onError: (error: any) => {
-      toast.error("Gagal membuat lowongan: " + error.message);
-    },
+  const filteredJobs = (jobs ?? []).filter((job) => {
+    const haystack = `${job.title} ${job.department} ${job.location}`.toLowerCase();
+    return haystack.includes(searchQuery.toLowerCase());
   });
 
-  // Update job mutation
-  const updateJob = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: typeof formData }) => {
-      const { error } = await supabase
-        .from("jobs")
-        .update({
-          title: data.title,
-          department: data.department,
-          location: data.location,
-          employment_type: data.employment_type,
-          description: data.description,
-          requirements: data.requirements.split("\n").filter(Boolean),
-          responsibilities: data.responsibilities.split("\n").filter(Boolean),
-          min_education: data.min_education,
-          min_experience_years: parseInt(data.min_experience_years.toString()) || 0,
-          min_salary: data.min_salary ? parseInt(data.min_salary) : null,
-          max_salary: data.max_salary ? parseInt(data.max_salary) : null,
-          quota: data.quota ? parseInt(data.quota) : null,
-          deadline: data.deadline || null,
-          status: data.status,
-        })
-        .eq("id", id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Lowongan berhasil diupdate");
-      setIsEditDialogOpen(false);
-      setSelectedJob(null);
-      resetForm();
-      queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
-    },
-    onError: (error: any) => {
-      toast.error("Gagal mengupdate lowongan: " + error.message);
-    },
-  });
-
-  // Delete job mutation
-  const deleteJob = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("jobs").delete().eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Lowongan berhasil dihapus");
-      setIsDeleteDialogOpen(false);
-      setSelectedJob(null);
-      queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
-    },
-    onError: (error: any) => {
-      toast.error("Gagal menghapus lowongan: " + error.message);
-    },
-  });
-
-  // Toggle publish status
-  const togglePublish = useMutation({
-    mutationFn: async ({ id, currentStatus }: { id: string; currentStatus: string }) => {
-      const newStatus = currentStatus === "published" ? "closed" : "published";
-      const { error } = await supabase
-        .from("jobs")
-        .update({ status: newStatus })
-        .eq("id", id);
-
-      if (error) throw error;
-      return newStatus;
-    },
-    onSuccess: (newStatus) => {
-      toast.success(newStatus === "published" ? "Lowongan dipublikasikan" : "Lowongan ditutup");
-      queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
-    },
-  });
-
-  const resetForm = () => {
-    setFormData({
-      title: "",
-      department: "",
-      location: "",
-      employment_type: "full_time",
-      description: "",
-      requirements: "",
-      responsibilities: "",
-      min_education: "s1",
-      min_experience_years: 0,
-      min_salary: "",
-      max_salary: "",
-      quota: "",
-      deadline: "",
-      status: "draft",
-    });
+  const stats = {
+    total: jobs?.length ?? 0,
+    published: jobs?.filter((job) => job.status === "published").length ?? 0,
+    draft: jobs?.filter((job) => job.status === "draft").length ?? 0,
+    applicants: jobs?.reduce((sum, job) => sum + (job.applications?.[0]?.count ?? 0), 0) ?? 0,
   };
 
-  const openEditDialog = (job: Job) => {
+  const resetForm = () => setFormData(emptyForm);
+
+  const payload = (data: FormData) => ({
+    title: data.title,
+    department: data.department,
+    location: data.location,
+    employment_type: data.employment_type,
+    description: data.description,
+    requirements: data.requirements.split("\n").map((item) => item.trim()).filter(Boolean),
+    responsibilities: data.responsibilities.split("\n").map((item) => item.trim()).filter(Boolean),
+    min_education: data.min_education,
+    min_experience_years: Number(data.min_experience_years) || 0,
+    min_salary: data.min_salary ? Number(data.min_salary) : null,
+    max_salary: data.max_salary ? Number(data.max_salary) : null,
+    quota: data.quota ? Number(data.quota) : null,
+    deadline: data.deadline || null,
+    status: data.status,
+  });
+
+  const createJob = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("jobs").insert(payload(formData));
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Lowongan berhasil dibuat.");
+      setDialogMode(null);
+      resetForm();
+      queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const updateJob = useMutation({
+    mutationFn: async () => {
+      if (!selectedJob) return;
+      const { error } = await supabase.from("jobs").update(payload(formData)).eq("id", selectedJob.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Lowongan berhasil diperbarui.");
+      setDialogMode(null);
+      setSelectedJob(null);
+      resetForm();
+      queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const deleteJob = useMutation({
+    mutationFn: async () => {
+      if (!deleteTarget) return;
+      const { error } = await supabase.from("jobs").delete().eq("id", deleteTarget.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Lowongan dihapus.");
+      setDeleteTarget(null);
+      queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const togglePublish = useMutation({
+    mutationFn: async (job: Job) => {
+      const status = job.status === "published" ? "closed" : "published";
+      const { error } = await supabase.from("jobs").update({ status }).eq("id", job.id);
+      if (error) throw error;
+      return status;
+    },
+    onSuccess: (status) => {
+      toast.success(status === "published" ? "Lowongan dipublikasikan." : "Lowongan ditutup.");
+      queryClient.invalidateQueries({ queryKey: ["admin-jobs"] });
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const openEdit = (job: Job) => {
     setSelectedJob(job);
     setFormData({
       title: job.title,
       department: job.department,
       location: job.location,
       employment_type: job.employment_type,
-      description: job.description || "",
-      requirements: "",
-      responsibilities: "",
-      min_education: "s1",
-      min_experience_years: 0,
-      min_salary: job.min_salary?.toString() || "",
-      max_salary: job.max_salary?.toString() || "",
-      quota: "",
-      deadline: job.deadline || "",
+      description: job.description ?? "",
+      requirements: (job.requirements ?? []).join("\n"),
+      responsibilities: (job.responsibilities ?? []).join("\n"),
+      min_education: job.min_education ?? "s1",
+      min_experience_years: String(job.min_experience_years ?? 0),
+      min_salary: job.min_salary?.toString() ?? "",
+      max_salary: job.max_salary?.toString() ?? "",
+      quota: job.quota?.toString() ?? "",
+      deadline: job.deadline ?? "",
       status: job.status,
     });
-    setIsEditDialogOpen(true);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    createJob.mutate(formData);
-  };
-
-  const handleUpdate = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedJob) {
-      updateJob.mutate({ id: selectedJob.id, data: formData });
-    }
-  };
-
-  const filteredJobs = jobs?.filter((job) =>
-    job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    job.department.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const stats = {
-    total: jobs?.length || 0,
-    published: jobs?.filter((j) => j.status === "published").length || 0,
-    draft: jobs?.filter((j) => j.status === "draft").length || 0,
-    closed: jobs?.filter((j) => j.status === "closed").length || 0,
-    totalApplications: jobs?.reduce((acc, job) => acc + (job.applications_count || 0), 0) || 0,
+    setDialogMode("edit");
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4 border-b border-border pb-6 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
-            Manajemen Lowongan
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400 mt-1">
-            Kelola lowongan kerja dan monitor aplikasi
-          </p>
+          <span className="eyebrow">Job Management</span>
+          <h1 className="mt-3 text-3xl font-extrabold">Manajemen Lowongan</h1>
+          <p className="mt-2 text-sm text-muted-foreground">Kelola posisi, detail kualifikasi, publikasi, dan jumlah pelamar.</p>
         </div>
-        <Button
-          onClick={() => setIsCreateDialogOpen(true)}
-          className="bg-red-600 hover:bg-red-700"
-        >
+        <Button onClick={() => { resetForm(); setDialogMode("create"); }}>
           <Plus className="mr-2 h-4 w-4" />
           Tambah Lowongan
         </Button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Briefcase className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-600">Total</p>
-                <p className="text-xl font-bold">{stats.total}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-100 rounded-lg">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-600">Published</p>
-                <p className="text-xl font-bold">{stats.published}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-100 rounded-lg">
-                <Calendar className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-600">Draft</p>
-                <p className="text-xl font-bold">{stats.draft}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <Users className="h-5 w-5 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-600">Total Pelamar</p>
-                <p className="text-xl font-bold">{stats.totalApplications}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 md:grid-cols-4">
+        {[
+          { label: "Total", value: stats.total, icon: Briefcase },
+          { label: "Published", value: stats.published, icon: CheckCircle2 },
+          { label: "Draft", value: stats.draft, icon: Edit },
+          { label: "Pelamar", value: stats.applicants, icon: Users },
+        ].map((item) => {
+          const Icon = item.icon;
+          return (
+          <Card key={item.label} className="industrial-card p-5">
+            <Icon className="h-5 w-5 text-primary" />
+            <div className="mt-4 text-2xl font-extrabold">{item.value}</div>
+            <div className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">{item.label}</div>
+          </Card>
+          );
+        })}
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Cari lowongan..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Filter status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Status</SelectItem>
-                <SelectItem value="published">Published</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="closed">Closed</SelectItem>
-                <SelectItem value="archived">Archived</SelectItem>
-              </SelectContent>
-            </Select>
+      <Card className="industrial-card p-4">
+        <div className="grid gap-3 md:grid-cols-[1fr_180px]">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Cari lowongan, departemen, lokasi" className="pl-10" />
           </div>
-        </CardContent>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Status</SelectItem>
+              {Object.entries(jobStatusLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        </div>
       </Card>
 
-      {/* Jobs Table */}
-      <Card>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="p-6 space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-16" />
-              ))}
-            </div>
-          ) : filteredJobs?.length === 0 ? (
-            <div className="p-12 text-center">
-              <Briefcase className="h-12 w-12 mx-auto mb-4 text-slate-300" />
-              <h3 className="text-lg font-medium text-slate-900">Belum ada lowongan</h3>
-              <p className="text-slate-500 mt-1">Mulai dengan menambahkan lowongan baru</p>
-              <Button
-                onClick={() => setIsCreateDialogOpen(true)}
-                className="mt-4 bg-red-600 hover:bg-red-700"
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Tambah Lowongan
-              </Button>
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Posisi</TableHead>
-                  <TableHead>Departemen</TableHead>
-                  <TableHead>Lokasi</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Pelamar</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
+      <Card className="industrial-card overflow-hidden">
+        {isLoading ? (
+          <div className="p-6 text-sm text-muted-foreground">Memuat data lowongan...</div>
+        ) : filteredJobs.length === 0 ? (
+          <div className="p-10 text-center">
+            <Briefcase className="mx-auto h-12 w-12 text-muted-foreground" />
+            <h2 className="mt-4 text-xl font-extrabold">Belum ada lowongan</h2>
+            <Button className="mt-5" onClick={() => setDialogMode("create")}>Tambah Lowongan</Button>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Posisi</TableHead>
+                <TableHead>Departemen</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Pelamar</TableHead>
+                <TableHead>Batas</TableHead>
+                <TableHead className="text-right">Aksi</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredJobs.map((job) => (
+                <TableRow key={job.id}>
+                  <TableCell>
+                    <div className="font-bold">{job.title}</div>
+                    <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3" />{job.location}</div>
+                  </TableCell>
+                  <TableCell>{job.department}</TableCell>
+                  <TableCell><Badge variant={job.status === "published" ? "default" : "outline"}>{jobStatusLabels[job.status] ?? job.status}</Badge></TableCell>
+                  <TableCell>{job.applications?.[0]?.count ?? 0}</TableCell>
+                  <TableCell>{job.deadline ? format(new Date(job.deadline), "dd MMM yyyy", { locale: id }) : "-"}</TableCell>
+                  <TableCell className="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild><Link to="/jobs/$jobId" params={{ jobId: job.id }}><Eye className="mr-2 h-4 w-4" />Lihat Public</Link></DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openEdit(job)}><Edit className="mr-2 h-4 w-4" />Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => togglePublish.mutate(job)}>
+                          {job.status === "published" ? <XCircle className="mr-2 h-4 w-4" /> : <CheckCircle2 className="mr-2 h-4 w-4" />}
+                          {job.status === "published" ? "Tutup" : "Publish"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive" onClick={() => setDeleteTarget(job)}><Trash2 className="mr-2 h-4 w-4" />Hapus</DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredJobs?.map((job) => (
-                  <TableRow key={job.id}>
-                    <TableCell>
-                      <div className="font-medium">{job.title}</div>
-                      <div className="text-sm text-slate-500">
-                        {employmentTypes[job.employment_type]}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-slate-400" />
-                        {job.department}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-slate-400" />
-                        {job.location}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={jobStatuses[job.status]?.color || "bg-slate-100"}>
-                        {jobStatuses[job.status]?.label || job.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-slate-400" />
-                        {job.applications_count || 0}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEditDialog(job)}>
-                            <Edit className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => togglePublish.mutate({ id: job.id, currentStatus: job.status })}
-                          >
-                            {job.status === "published" ? (
-                              <>
-                                <XCircle className="mr-2 h-4 w-4" />
-                                Tutup Lowongan
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle2 className="mr-2 h-4 w-4" />
-                                Publish
-                              </>
-                            )}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              setSelectedJob(job);
-                              setIsDeleteDialogOpen(true);
-                            }}
-                            className="text-red-600"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Hapus
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </Card>
 
-      {/* Create Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <Dialog open={dialogMode !== null} onOpenChange={(open) => { if (!open) { setDialogMode(null); setSelectedJob(null); } }}>
+        <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Tambah Lowongan Baru</DialogTitle>
-            <DialogDescription>
-              Isi detail lowongan kerja yang ingin dipublikasikan
-            </DialogDescription>
+            <DialogTitle>{dialogMode === "edit" ? "Edit Lowongan" : "Tambah Lowongan"}</DialogTitle>
+            <DialogDescription>Isi detail posisi, persyaratan, tanggung jawab, dan status publikasi.</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Judul Pekerjaan *</Label>
-                <Input
-                  id="title"
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder="e.g. Production Engineer"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="department">Departemen *</Label>
-                <Input
-                  id="department"
-                  value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  placeholder="e.g. Engineering"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="location">Lokasi *</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  placeholder="e.g. Cibitung, Jawa Barat"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="employment_type">Tipe Pekerjaan *</Label>
-                <Select
-                  value={formData.employment_type}
-                  onValueChange={(value) => setFormData({ ...formData, employment_type: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(employmentTypes).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Deskripsi Pekerjaan *</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Jelaskan tugas dan tanggung jawab pekerjaan..."
-                rows={4}
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="min_salary">Gaji Minimum (Opsional)</Label>
-                <Input
-                  id="min_salary"
-                  type="number"
-                  value={formData.min_salary}
-                  onChange={(e) => setFormData({ ...formData, min_salary: e.target.value })}
-                  placeholder="e.g. 8000000"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="max_salary">Gaji Maksimum (Opsional)</Label>
-                <Input
-                  id="max_salary"
-                  type="number"
-                  value={formData.max_salary}
-                  onChange={(e) => setFormData({ ...formData, max_salary: e.target.value })}
-                  placeholder="e.g. 15000000"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="quota">Kuota (Opsional)</Label>
-                <Input
-                  id="quota"
-                  type="number"
-                  value={formData.quota}
-                  onChange={(e) => setFormData({ ...formData, quota: e.target.value })}
-                  placeholder="Jumlah karyawan yang dibutuhkan"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="deadline">Deadline (Opsional)</Label>
-                <Input
-                  id="deadline"
-                  type="date"
-                  value={formData.deadline}
-                  onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={formData.status}
-                onValueChange={(value) => setFormData({ ...formData, status: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="draft">Draft (Simpan dulu)</SelectItem>
-                  <SelectItem value="published">Published (Langsung publish)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsCreateDialogOpen(false);
-                  resetForm();
-                }}
-              >
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                className="bg-red-600 hover:bg-red-700"
-                disabled={createJob.isPending}
-              >
-                {createJob.isPending ? "Menyimpan..." : "Simpan Lowongan"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Lowongan</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleUpdate} className="space-y-4">
-            {/* Same form fields as create */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Judul Pekerjaan</Label>
-                <Input
-                  value={formData.title}
-                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Departemen</Label>
-                <Input
-                  value={formData.department}
-                  onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-                  required
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setIsEditDialogOpen(false);
-                  setSelectedJob(null);
-                  resetForm();
-                }}
-              >
-                Batal
-              </Button>
-              <Button
-                type="submit"
-                className="bg-red-600 hover:bg-red-700"
-                disabled={updateJob.isPending}
-              >
-                {updateJob.isPending ? "Menyimpan..." : "Update Lowongan"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Dialog */}
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Hapus Lowongan</DialogTitle>
-            <DialogDescription>
-              Apakah Anda yakin ingin menghapus lowongan "{selectedJob?.title}"?
-              Tindakan ini tidak dapat dibatalkan.
-            </DialogDescription>
-          </DialogHeader>
+          <JobForm formData={formData} setFormData={setFormData} />
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsDeleteDialogOpen(false);
-                setSelectedJob(null);
-              }}
-            >
-              Batal
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => selectedJob && deleteJob.mutate(selectedJob.id)}
-              disabled={deleteJob.isPending}
-            >
-              {deleteJob.isPending ? "Menghapus..." : "Hapus"}
+            <Button variant="outline" onClick={() => setDialogMode(null)}>Batal</Button>
+            <Button onClick={() => (dialogMode === "edit" ? updateJob.mutate() : createJob.mutate())} disabled={createJob.isPending || updateJob.isPending}>
+              {createJob.isPending || updateJob.isPending ? "Menyimpan..." : "Simpan"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Hapus Lowongan</DialogTitle>
+            <DialogDescription>Lowongan “{deleteTarget?.title}” akan dihapus dari database.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>Batal</Button>
+            <Button variant="destructive" onClick={() => deleteJob.mutate()} disabled={deleteJob.isPending}>Hapus</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function JobForm({ formData, setFormData }: { formData: FormData; setFormData: (data: FormData) => void }) {
+  return (
+    <div className="grid gap-4 py-2">
+      <div className="grid gap-4 md:grid-cols-2">
+        <Field label="Judul Posisi"><Input value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} /></Field>
+        <Field label="Departemen">
+          <Select value={formData.department} onValueChange={(value) => setFormData({ ...formData, department: value })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>{jobDepartments.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
+          </Select>
+        </Field>
+        <Field label="Lokasi"><Input value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} /></Field>
+        <Field label="Tipe Kerja">
+          <Select value={formData.employment_type} onValueChange={(value) => setFormData({ ...formData, employment_type: value })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>{Object.entries(employmentTypeLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
+          </Select>
+        </Field>
+      </div>
+      <Field label="Deskripsi"><Textarea rows={4} value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} /></Field>
+      <div className="grid gap-4 md:grid-cols-2">
+        <Field label="Tanggung Jawab (satu per baris)"><Textarea rows={5} value={formData.responsibilities} onChange={(e) => setFormData({ ...formData, responsibilities: e.target.value })} /></Field>
+        <Field label="Persyaratan (satu per baris)"><Textarea rows={5} value={formData.requirements} onChange={(e) => setFormData({ ...formData, requirements: e.target.value })} /></Field>
+      </div>
+      <div className="grid gap-4 md:grid-cols-4">
+        <Field label="Pendidikan">
+          <Select value={formData.min_education} onValueChange={(value) => setFormData({ ...formData, min_education: value })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>{Object.entries(educationLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
+          </Select>
+        </Field>
+        <Field label="Pengalaman"><Input type="number" value={formData.min_experience_years} onChange={(e) => setFormData({ ...formData, min_experience_years: e.target.value })} /></Field>
+        <Field label="Kuota"><Input type="number" value={formData.quota} onChange={(e) => setFormData({ ...formData, quota: e.target.value })} /></Field>
+        <Field label="Deadline"><Input type="date" value={formData.deadline} onChange={(e) => setFormData({ ...formData, deadline: e.target.value })} /></Field>
+      </div>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Field label="Gaji Minimum"><Input type="number" value={formData.min_salary} onChange={(e) => setFormData({ ...formData, min_salary: e.target.value })} /></Field>
+        <Field label="Gaji Maksimum"><Input type="number" value={formData.max_salary} onChange={(e) => setFormData({ ...formData, max_salary: e.target.value })} /></Field>
+        <Field label="Status">
+          <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value })}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">Draft</SelectItem>
+              <SelectItem value="published">Published</SelectItem>
+              <SelectItem value="closed">Closed</SelectItem>
+            </SelectContent>
+          </Select>
+        </Field>
+      </div>
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div>
+      <Label>{label}</Label>
+      <div className="mt-1.5">{children}</div>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import {
   BriefcaseBusiness,
   LayoutDashboard,
   LogOut,
+  Mail,
   Menu,
   ShieldCheck,
   UserRound,
@@ -34,7 +35,7 @@ export function Navbar() {
   const canAccessAdmin = user && (hasRole("admin") || hasRole("hr"));
 
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-white/92 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-border bg-background/96 backdrop-blur-xl">
       <div className="hidden border-b border-border/70 bg-secondary text-secondary-foreground md:block">
         <div className="container-page flex h-9 items-center justify-between text-xs">
           <div className="flex items-center gap-2 font-semibold">
@@ -58,7 +59,7 @@ export function Navbar() {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`px-3.5 py-2 text-sm font-bold rounded-md ${
+                  className={`border border-transparent px-3.5 py-2 text-sm font-bold ${
                   active
                     ? "bg-accent text-primary"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -89,9 +90,15 @@ export function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuItem asChild>
+                  <Link to="/applications" className="cursor-pointer">
+                    <Mail className="mr-2 h-4 w-4" />
+                    Mail Box Lamaran
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to="/jobs" className="cursor-pointer">
                     <BriefcaseBusiness className="mr-2 h-4 w-4" />
-                    Lowongan Saya
+                    Cari Lowongan
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -115,7 +122,7 @@ export function Navbar() {
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-foreground lg:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center border border-border text-foreground lg:hidden"
           onClick={() => setOpen((value) => !value)}
           aria-label="Buka menu"
         >
@@ -124,31 +131,35 @@ export function Navbar() {
       </div>
 
       {open && (
-        <div className="border-t border-border bg-white lg:hidden">
+        <div className="border-t border-border bg-background lg:hidden">
           <div className="container-page grid gap-2 py-4">
             {links.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
+                className="border border-transparent px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
               >
                 {item.label}
               </Link>
             ))}
             <div className="mt-2 grid grid-cols-2 gap-2 border-t border-border pt-4">
               {user ? (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    signOut();
-                    setOpen(false);
-                  }}
-                  className="col-span-2"
-                >
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Keluar
-                </Button>
+                <>
+                  <Button variant="outline" asChild onClick={() => setOpen(false)}>
+                    <Link to="/applications">Mail Box</Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      signOut();
+                      setOpen(false);
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Keluar
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button variant="outline" asChild onClick={() => setOpen(false)}>

@@ -61,17 +61,26 @@ function JobsPage() {
   const [type, setType] = useState("all");
   const [education, setEducation] = useState("all");
 
-  const { data: jobs, isLoading } = useQuery({
+  const { data: jobs, isLoading, isFetching } = useQuery({
     queryKey: ["public-jobs"],
     queryFn: async () => {
-      const { data } = await supabase
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 4500);
+      const { data, error } = await supabase
         .from("jobs")
         .select("*")
         .in("status", ["published", "open"])
         .order("is_featured", { ascending: false })
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .abortSignal(controller.signal);
+      window.clearTimeout(timeout);
+      if (error) {
+        console.error("Gagal memuat lowongan", error);
+        return [] as Job[];
+      }
       return (data ?? []) as Job[];
     },
+    retry: 1,
   });
 
   const departments = useMemo(() => {
@@ -101,7 +110,7 @@ function JobsPage() {
 
   return (
     <SiteShell>
-      <section className="border-b border-border bg-white">
+      <section className="border-b border-border bg-surface">
         <div className="container-page py-14 md:py-16">
           <div className="grid gap-8 lg:grid-cols-[1fr_0.6fr] lg:items-end">
             <div>
@@ -197,10 +206,10 @@ function JobsPage() {
       </section>
 
       <section className="container-page pb-20">
-        {isLoading ? (
+        {isLoading && isFetching ? (
           <div className="grid gap-4">
             {[0, 1, 2, 3].map((item) => (
-              <div key={item} className="h-36 animate-pulse rounded-lg bg-muted" />
+              <div key={item} className="h-36 animate-pulse bg-muted" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
