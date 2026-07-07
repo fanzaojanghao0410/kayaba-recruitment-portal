@@ -59,6 +59,8 @@ function HomePage() {
   const { data: jobs } = useQuery({
     queryKey: ["home-featured-jobs"],
     queryFn: async () => {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 4500);
       const { data, error } = await supabase
         .from("jobs")
         .select(
@@ -67,7 +69,9 @@ function HomePage() {
         .in("status", ["published", "open"])
         .order("is_featured", { ascending: false })
         .order("created_at", { ascending: false })
-        .limit(3);
+        .limit(3)
+        .abortSignal(controller.signal);
+      window.clearTimeout(timeout);
       if (error) {
         console.error("Gagal memuat lowongan prioritas", error);
         return [] as Job[];
