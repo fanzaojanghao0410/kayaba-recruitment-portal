@@ -61,17 +61,22 @@ function JobsPage() {
   const [type, setType] = useState("all");
   const [education, setEducation] = useState("all");
 
-  const { data: jobs, isLoading } = useQuery({
+  const { data: jobs, isLoading, isFetching } = useQuery({
     queryKey: ["public-jobs"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("jobs")
         .select("*")
         .in("status", ["published", "open"])
         .order("is_featured", { ascending: false })
         .order("created_at", { ascending: false });
+      if (error) {
+        console.error("Gagal memuat lowongan", error);
+        return [] as Job[];
+      }
       return (data ?? []) as Job[];
     },
+    retry: 1,
   });
 
   const departments = useMemo(() => {
@@ -197,7 +202,7 @@ function JobsPage() {
       </section>
 
       <section className="container-page pb-20">
-        {isLoading ? (
+        {isLoading && isFetching ? (
           <div className="grid gap-4">
             {[0, 1, 2, 3].map((item) => (
               <div key={item} className="h-36 animate-pulse bg-muted" />

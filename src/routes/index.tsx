@@ -59,7 +59,7 @@ function HomePage() {
   const { data: jobs } = useQuery({
     queryKey: ["home-featured-jobs"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("jobs")
         .select(
           "id,title,department,location,employment_type,min_education,status,description,deadline,is_featured",
@@ -68,8 +68,13 @@ function HomePage() {
         .order("is_featured", { ascending: false })
         .order("created_at", { ascending: false })
         .limit(3);
+      if (error) {
+        console.error("Gagal memuat lowongan prioritas", error);
+        return [] as Job[];
+      }
       return (data ?? []) as Job[];
     },
+    retry: 1,
   });
 
   return (

@@ -59,7 +59,7 @@ export function Navbar() {
               <Link
                 key={item.to}
                 to={item.to}
-                className={`px-3.5 py-2 text-sm font-bold rounded-md ${
+                  className={`border border-transparent px-3.5 py-2 text-sm font-bold ${
                   active
                     ? "bg-accent text-primary"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -122,7 +122,7 @@ export function Navbar() {
 
         <button
           type="button"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-border text-foreground lg:hidden"
+          className="inline-flex h-10 w-10 items-center justify-center border border-border text-foreground lg:hidden"
           onClick={() => setOpen((value) => !value)}
           aria-label="Buka menu"
         >
@@ -138,7 +138,7 @@ export function Navbar() {
                 key={item.to}
                 to={item.to}
                 onClick={() => setOpen(false)}
-                className="rounded-md px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
+                className="border border-transparent px-3 py-2.5 text-sm font-semibold text-foreground hover:bg-muted"
               >
                 {item.label}
               </Link>
