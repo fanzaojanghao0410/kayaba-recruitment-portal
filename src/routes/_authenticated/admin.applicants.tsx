@@ -23,8 +23,8 @@ function AdminApplicantsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin h-8 w-8 border-4 border-red-600 border-t-transparent rounded-full mx-auto mb-4" />
-          <p className="text-slate-600">Memuat...</p>
+          <div className="mx-auto mb-4 h-8 w-8 animate-spin border-4 border-primary border-t-transparent" />
+          <p className="text-muted-foreground">Memuat...</p>
         </div>
       </div>
     );
@@ -34,7 +34,7 @@ function AdminApplicantsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <p className="text-slate-600 mb-4">Anda tidak memiliki izin untuk mengakses halaman ini.</p>
+          <p className="mb-4 text-muted-foreground">Anda tidak memiliki izin untuk mengakses halaman ini.</p>
           <Button onClick={() => navigate({ to: "/" })} variant="outline">
             Kembali ke Beranda
           </Button>

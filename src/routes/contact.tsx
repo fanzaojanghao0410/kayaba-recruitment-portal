@@ -108,7 +108,7 @@ function ContactPage() {
 
   return (
     <SiteShell>
-      <section className="border-b border-border bg-white">
+      <section className="border-b border-border bg-surface">
         <div className="container-page grid gap-10 py-14 md:py-16 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
           <div>
             <span className="eyebrow">
@@ -218,7 +218,7 @@ function ContactPage() {
               <div className="mt-5 grid gap-3">
                 {hiringSteps.map((step, index) => (
                   <div key={step.title} className="flex gap-3 text-sm">
-                    <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary text-xs font-extrabold text-primary-foreground">
+                    <div className="flex h-7 w-7 shrink-0 items-center justify-center bg-primary text-xs font-extrabold text-primary-foreground">
                       {index + 1}
                     </div>
                     <div>
