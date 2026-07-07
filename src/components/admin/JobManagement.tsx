@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
@@ -221,17 +222,20 @@ export function JobManagement() {
 
       <div className="grid gap-4 md:grid-cols-4">
         {[
-          ["Total", stats.total, Briefcase],
-          ["Published", stats.published, CheckCircle2],
-          ["Draft", stats.draft, Edit],
-          ["Pelamar", stats.applicants, Users],
-        ].map(([label, value, Icon]) => (
-          <Card key={String(label)} className="industrial-card p-5">
+          { label: "Total", value: stats.total, icon: Briefcase },
+          { label: "Published", value: stats.published, icon: CheckCircle2 },
+          { label: "Draft", value: stats.draft, icon: Edit },
+          { label: "Pelamar", value: stats.applicants, icon: Users },
+        ].map((item) => {
+          const Icon = item.icon;
+          return (
+          <Card key={item.label} className="industrial-card p-5">
             <Icon className="h-5 w-5 text-primary" />
-            <div className="mt-4 text-2xl font-extrabold">{String(value)}</div>
-            <div className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">{String(label)}</div>
+            <div className="mt-4 text-2xl font-extrabold">{item.value}</div>
+            <div className="text-xs font-bold uppercase tracking-[0.1em] text-muted-foreground">{item.label}</div>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       <Card className="industrial-card p-4">
@@ -388,7 +392,7 @@ function JobForm({ formData, setFormData }: { formData: FormData; setFormData: (
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div>
       <Label>{label}</Label>
