@@ -125,7 +125,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializeAuth();
 
     // Listen for auth changes
-    const { data: subscription } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+    const { data: subscription } = supabase.auth.onAuthStateChange(async (_event: string, newSession: Session | null) => {
       if (!isMountedRef.current) return;
 
       setSession(newSession);

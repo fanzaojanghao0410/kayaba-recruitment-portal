@@ -49,7 +49,7 @@ function AdminLoginPage() {
     if (!userId) return;
 
     const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-    const canAccessAdmin = roles?.some((item) => item.role === "admin" || item.role === "hr");
+    const canAccessAdmin = roles?.some((item: { role: string }) => item.role === "admin" || item.role === "hr");
 
     if (!canAccessAdmin) {
       await supabase.auth.signOut();

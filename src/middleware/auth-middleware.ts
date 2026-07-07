@@ -55,7 +55,7 @@ export async function requireAuth(req: AuthRequest, res: ResponseLike, next: () 
  * Middleware to require specific roles
  */
 export function requireRoles(...allowedRoles: string[]) {
-  return (req: AuthRequest, res: Response, next: () => void) => {
+  return (req: AuthRequest, res: ResponseLike, next: () => void) => {
     if (!req.auth?.user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -100,7 +100,7 @@ interface RateLimitStore {
 const rateLimitStore: RateLimitStore = {};
 
 export function rateLimit(maxRequests: number = 100, windowMs: number = 60 * 1000) {
-  return (req: AuthRequest, res: Response, next: () => void) => {
+  return (req: AuthRequest, res: ResponseLike, next: () => void) => {
     const key = req.ip || 'unknown';
     const now = Date.now();
     const userLimit = rateLimitStore[key];
