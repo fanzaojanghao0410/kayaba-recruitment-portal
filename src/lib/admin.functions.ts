@@ -67,7 +67,8 @@ export const getSignedCvUrl = createServerFn({ method: "POST" })
     z.object({ applicationId: z.string().uuid() }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const supabase: any = context.supabase;
+    const userId = context.userId;
     const { data: isStaff } = await supabase.rpc("is_staff", { _user_id: userId });
     if (!isStaff) throw new Error("Forbidden: HR/Admin only");
 
