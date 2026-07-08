@@ -21,7 +21,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
   const handleSignOut = async () => {
     await signOut();
     toast.success("Berhasil logout");
-    navigate({ to: "/admin-login" });
+    navigate({ to: "/login" });
   };
 
   const roleLabel = hasRole("admin") ? "Administrator" : "HR Staff";
