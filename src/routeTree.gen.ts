@@ -13,7 +13,6 @@ import { Route as RegisterRouteImport } from './routes/register'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as JobsRouteImport } from './routes/jobs'
 import { Route as ContactRouteImport } from './routes/contact'
-import { Route as AdminLoginRouteImport } from './routes/admin-login'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
@@ -42,11 +41,6 @@ const JobsRoute = JobsRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/admin-login',
-  path: '/admin-login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -99,7 +93,6 @@ const AuthenticatedAdminApplicantsRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin-login': typeof AdminLoginRoute
   '/contact': typeof ContactRoute
   '/jobs': typeof JobsRouteWithChildren
   '/login': typeof LoginRoute
@@ -114,7 +107,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin-login': typeof AdminLoginRoute
   '/contact': typeof ContactRoute
   '/jobs': typeof JobsRouteWithChildren
   '/login': typeof LoginRoute
@@ -131,7 +123,6 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/about': typeof AboutRoute
-  '/admin-login': typeof AdminLoginRoute
   '/contact': typeof ContactRoute
   '/jobs': typeof JobsRouteWithChildren
   '/login': typeof LoginRoute
@@ -148,7 +139,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
-    | '/admin-login'
     | '/contact'
     | '/jobs'
     | '/login'
@@ -163,7 +153,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/admin-login'
     | '/contact'
     | '/jobs'
     | '/login'
@@ -179,7 +168,6 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/about'
-    | '/admin-login'
     | '/contact'
     | '/jobs'
     | '/login'
@@ -196,7 +184,6 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AboutRoute: typeof AboutRoute
-  AdminLoginRoute: typeof AdminLoginRoute
   ContactRoute: typeof ContactRoute
   JobsRoute: typeof JobsRouteWithChildren
   LoginRoute: typeof LoginRoute
@@ -231,13 +218,6 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin-login': {
-      id: '/admin-login'
-      path: '/admin-login'
-      fullPath: '/admin-login'
-      preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -349,7 +329,6 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AboutRoute: AboutRoute,
-  AdminLoginRoute: AdminLoginRoute,
   ContactRoute: ContactRoute,
   JobsRoute: JobsRouteWithChildren,
   LoginRoute: LoginRoute,
