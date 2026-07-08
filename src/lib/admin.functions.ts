@@ -106,7 +106,7 @@ export const exportApplicationsCsv = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const supabase: any = context.supabase; const userId = context.userId;
     const { data: isStaff } = await supabase.rpc("is_staff", { _user_id: userId });
     if (!isStaff) throw new Error("Forbidden: HR/Admin only");
 
@@ -179,7 +179,7 @@ export const notifyStatusChange = createServerFn({ method: "POST" })
     z.object({ applicationId: z.string().uuid(), status: z.string().min(1).max(64) }).parse(input),
   )
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const supabase: any = context.supabase; const userId = context.userId;
     const { data: isStaff } = await supabase.rpc("is_staff", { _user_id: userId });
     if (!isStaff) throw new Error("Forbidden");
 
