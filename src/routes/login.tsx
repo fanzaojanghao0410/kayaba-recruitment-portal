@@ -152,11 +152,8 @@ function LoginPage() {
               )}
             </Button>
 
-            <div className="border-t border-border pt-4 text-center text-sm text-muted-foreground">
-              Akses internal HR?{" "}
-              <Link to="/admin-login" className="font-bold text-primary hover:underline">
-                Masuk admin
-              </Link>
+            <div className="border-t border-border pt-4 text-center text-xs text-muted-foreground">
+              Satu portal untuk kandidat dan tim HR. Sistem otomatis mengarahkan Anda ke dashboard sesuai role akun.
             </div>
           </form>
         </Card>
