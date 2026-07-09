@@ -65,7 +65,7 @@ export function ApplicantManagement() {
         .select(`
           id,status,screening_score,interview_date,internal_rating,created_at,
           job:job_id(title,department),
-          applicant:applicant_id(id,full_name,email,phone,city,cv_url,summary,expected_salary),
+          applicant:applicant_id(id,full_name,email,phone,city,cv_url,cv_path,summary,expected_salary),
           timeline:application_timeline(id,status,title,description,created_at)
         `)
         .order("created_at", { ascending: false });
