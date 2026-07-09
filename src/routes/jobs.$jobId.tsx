@@ -71,12 +71,14 @@ function JobDetailPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("applicants")
-        .select("id")
+        .select("id, cv_path, cv_url, full_name, phone")
         .eq("user_id", user!.id)
         .maybeSingle();
-      return data as { id: string } | null;
+      return data as { id: string; cv_path: string | null; cv_url: string | null; full_name: string | null; phone: string | null } | null;
     },
   });
+
+  const hasCv = Boolean(applicant?.cv_path || applicant?.cv_url);
 
   const { data: existingApplication } = useQuery({
     queryKey: ["existing-application", jobId, applicant?.id],
@@ -95,6 +97,7 @@ function JobDetailPage() {
   const apply = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Silakan masuk terlebih dahulu.");
+      if (!hasCv) throw new Error("Anda harus meng-upload CV di halaman Profil sebelum melamar.");
 
       let applicantId = applicant?.id;
       if (!applicantId) {
@@ -256,6 +259,15 @@ function JobDetailPage() {
                   <Button className="w-full" asChild>
                     <Link to="/login">Masuk untuk Melamar</Link>
                   </Button>
+                ) : !hasCv ? (
+                  <div className="space-y-2">
+                    <Button className="w-full" asChild variant="outline">
+                      <Link to="/profile">Upload CV dulu</Link>
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      CV wajib di-upload di halaman Profil sebelum bisa melamar.
+                    </p>
+                  </div>
                 ) : (
                   <Button
                     className="w-full"

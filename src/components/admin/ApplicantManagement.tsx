@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { format, formatDistanceToNow } from "date-fns";
 import { id } from "date-fns/locale";
 import { toast } from "sonner";
-import { Calendar, CheckCircle2, Download, Eye, FileText, History, Mail, MoreVertical, Search, Send, Star, UserCheck, Users, XCircle } from "lucide-react";
+import { Calendar, CheckCircle2, Download, Eye, FileDown, FileText, History, MoreVertical, Search, Send, Star, UserCheck, Users, XCircle } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { applicationStatusLabels } from "@/constants/company";
+import { getSignedCvUrl, exportApplicationsCsv, notifyStatusChange } from "@/lib/admin.functions";
 
 type Application = {
   id: string;
@@ -34,6 +36,7 @@ type Application = {
     phone: string | null;
     city: string | null;
     cv_url: string | null;
+    cv_path: string | null;
     summary: string | null;
     expected_salary: number | null;
   } | null;
@@ -50,6 +53,9 @@ export function ApplicantManagement() {
   const [hrNote, setHrNote] = useState("");
   const [internalRating, setInternalRating] = useState(0);
   const queryClient = useQueryClient();
+  const signedUrlFn = useServerFn(getSignedCvUrl);
+  const exportFn = useServerFn(exportApplicationsCsv);
+  const notifyFn = useServerFn(notifyStatusChange);
 
   const { data: applications, isLoading } = useQuery({
     queryKey: ["admin-applications", statusFilter],
@@ -59,7 +65,7 @@ export function ApplicantManagement() {
         .select(`
           id,status,screening_score,interview_date,internal_rating,created_at,
           job:job_id(title,department),
-          applicant:applicant_id(id,full_name,email,phone,city,cv_url,summary,expected_salary),
+          applicant:applicant_id(id,full_name,email,phone,city,cv_url,cv_path,summary,expected_salary),
           timeline:application_timeline(id,status,title,description,created_at)
         `)
         .order("created_at", { ascending: false });
@@ -79,12 +85,15 @@ export function ApplicantManagement() {
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase.from("applications").update({ status }).eq("id", id);
       if (error) throw error;
-      await supabase.from("application_timeline").insert({
-        application_id: id,
-        status,
-        title: `Status diperbarui: ${applicationStatusLabels[status] ?? status}`,
-        description: "Pembaruan status oleh tim HR PT Kayaba Indonesia.",
-      });
+      // Trigger DB otomatis menambahkan timeline & notification. Kirim email async.
+      try {
+        const res = await notifyFn({ data: { applicationId: id, status } });
+        if (res && "reason" in res && res.reason) {
+          console.warn("[email]", res.reason);
+        }
+      } catch (err: any) {
+        console.warn("[email] gagal:", err?.message ?? err);
+      }
     },
     onSuccess: () => {
       toast.success("Status pelamar diperbarui.");
@@ -93,6 +102,33 @@ export function ApplicantManagement() {
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  const downloadCv = async (applicationId: string) => {
+    try {
+      const res = await signedUrlFn({ data: { applicationId } });
+      window.open(res.url, "_blank");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Gagal membuka CV.");
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const res = await exportFn({
+        data: { status: statusFilter === "all" ? null : statusFilter },
+      });
+      const blob = new Blob([res.csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `pelamar-kayaba-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`${res.count} baris di-export.`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Gagal export CSV.");
+    }
+  };
 
   const addHrNote = useMutation({
     mutationFn: async () => {
@@ -139,7 +175,10 @@ export function ApplicantManagement() {
           <h1 className="mt-3 text-3xl font-extrabold">Monitoring Pelamar</h1>
           <p className="mt-2 text-sm text-muted-foreground">Review kandidat, ubah status, pantau timeline, dan simpan catatan internal HR.</p>
         </div>
-        <div className="border border-border bg-card px-3 py-2 text-sm font-bold"><Users className="mr-2 inline h-4 w-4 text-primary" />{applications?.length ?? 0} pelamar</div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="border border-border bg-card px-3 py-2 text-sm font-bold"><Users className="mr-2 inline h-4 w-4 text-primary" />{applications?.length ?? 0} pelamar</div>
+          <Button variant="outline" onClick={handleExport}><FileDown className="mr-2 h-4 w-4" />Export CSV</Button>
+        </div>
       </div>
 
       <Card className="industrial-card p-4">
@@ -233,12 +272,12 @@ export function ApplicantManagement() {
                 </TabsContent>
                 <TabsContent value="documents" className="mt-5">
                   <Card className="industrial-card p-5">
-                    {selectedApplication.applicant?.cv_url ? (
+                    {selectedApplication.applicant?.cv_path || selectedApplication.applicant?.cv_url ? (
                       <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3"><FileText className="h-8 w-8 text-primary" /><div><div className="font-bold">CV / Resume</div><div className="text-sm text-muted-foreground">Dokumen kandidat</div></div></div>
-                        <Button asChild variant="outline"><a href={selectedApplication.applicant.cv_url} target="_blank" rel="noopener noreferrer"><Download className="mr-2 h-4 w-4" />Download</a></Button>
+                        <div className="flex items-center gap-3"><FileText className="h-8 w-8 text-primary" /><div><div className="font-bold">CV / Resume</div><div className="text-sm text-muted-foreground">Signed URL, berlaku 60 detik.</div></div></div>
+                        <Button variant="outline" onClick={() => downloadCv(selectedApplication.id)}><Download className="mr-2 h-4 w-4" />Download CV</Button>
                       </div>
-                    ) : <p className="text-sm text-muted-foreground">Belum ada dokumen CV.</p>}
+                    ) : <p className="text-sm text-muted-foreground">Kandidat belum meng-upload CV.</p>}
                   </Card>
                 </TabsContent>
                 <TabsContent value="timeline" className="mt-5">
