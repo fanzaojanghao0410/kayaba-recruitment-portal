@@ -259,6 +259,15 @@ function JobDetailPage() {
                   <Button className="w-full" asChild>
                     <Link to="/login">Masuk untuk Melamar</Link>
                   </Button>
+                ) : !hasCv ? (
+                  <div className="space-y-2">
+                    <Button className="w-full" asChild variant="outline">
+                      <Link to="/profile">Upload CV dulu</Link>
+                    </Button>
+                    <p className="text-xs text-muted-foreground">
+                      CV wajib di-upload di halaman Profil sebelum bisa melamar.
+                    </p>
+                  </div>
                 ) : (
                   <Button
                     className="w-full"
