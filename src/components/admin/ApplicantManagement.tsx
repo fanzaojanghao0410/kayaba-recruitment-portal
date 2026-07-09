@@ -36,6 +36,7 @@ type Application = {
     phone: string | null;
     city: string | null;
     cv_url: string | null;
+    cv_path: string | null;
     summary: string | null;
     expected_salary: number | null;
   } | null;
