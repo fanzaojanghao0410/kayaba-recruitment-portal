@@ -175,7 +175,10 @@ export function ApplicantManagement() {
           <h1 className="mt-3 text-3xl font-extrabold">Monitoring Pelamar</h1>
           <p className="mt-2 text-sm text-muted-foreground">Review kandidat, ubah status, pantau timeline, dan simpan catatan internal HR.</p>
         </div>
-        <div className="border border-border bg-card px-3 py-2 text-sm font-bold"><Users className="mr-2 inline h-4 w-4 text-primary" />{applications?.length ?? 0} pelamar</div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="border border-border bg-card px-3 py-2 text-sm font-bold"><Users className="mr-2 inline h-4 w-4 text-primary" />{applications?.length ?? 0} pelamar</div>
+          <Button variant="outline" onClick={handleExport}><FileDown className="mr-2 h-4 w-4" />Export CSV</Button>
+        </div>
       </div>
 
       <Card className="industrial-card p-4">
