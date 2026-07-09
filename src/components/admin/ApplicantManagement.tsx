@@ -85,12 +85,15 @@ export function ApplicantManagement() {
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { error } = await supabase.from("applications").update({ status }).eq("id", id);
       if (error) throw error;
-      await supabase.from("application_timeline").insert({
-        application_id: id,
-        status,
-        title: `Status diperbarui: ${applicationStatusLabels[status] ?? status}`,
-        description: "Pembaruan status oleh tim HR PT Kayaba Indonesia.",
-      });
+      // Trigger DB otomatis menambahkan timeline & notification. Kirim email async.
+      try {
+        const res = await notifyFn({ data: { applicationId: id, status } });
+        if (res && "reason" in res && res.reason) {
+          console.warn("[email]", res.reason);
+        }
+      } catch (err: any) {
+        console.warn("[email] gagal:", err?.message ?? err);
+      }
     },
     onSuccess: () => {
       toast.success("Status pelamar diperbarui.");
@@ -99,6 +102,33 @@ export function ApplicantManagement() {
     },
     onError: (error: Error) => toast.error(error.message),
   });
+
+  const downloadCv = async (applicationId: string) => {
+    try {
+      const res = await signedUrlFn({ data: { applicationId } });
+      window.open(res.url, "_blank");
+    } catch (err: any) {
+      toast.error(err?.message ?? "Gagal membuka CV.");
+    }
+  };
+
+  const handleExport = async () => {
+    try {
+      const res = await exportFn({
+        data: { status: statusFilter === "all" ? null : statusFilter },
+      });
+      const blob = new Blob([res.csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `pelamar-kayaba-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success(`${res.count} baris di-export.`);
+    } catch (err: any) {
+      toast.error(err?.message ?? "Gagal export CSV.");
+    }
+  };
 
   const addHrNote = useMutation({
     mutationFn: async () => {
