@@ -272,12 +272,12 @@ export function ApplicantManagement() {
                 </TabsContent>
                 <TabsContent value="documents" className="mt-5">
                   <Card className="industrial-card p-5">
-                    {selectedApplication.applicant?.cv_url ? (
+                    {selectedApplication.applicant?.cv_path || selectedApplication.applicant?.cv_url ? (
                       <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3"><FileText className="h-8 w-8 text-primary" /><div><div className="font-bold">CV / Resume</div><div className="text-sm text-muted-foreground">Dokumen kandidat</div></div></div>
-                        <Button asChild variant="outline"><a href={selectedApplication.applicant.cv_url} target="_blank" rel="noopener noreferrer"><Download className="mr-2 h-4 w-4" />Download</a></Button>
+                        <div className="flex items-center gap-3"><FileText className="h-8 w-8 text-primary" /><div><div className="font-bold">CV / Resume</div><div className="text-sm text-muted-foreground">Signed URL, berlaku 60 detik.</div></div></div>
+                        <Button variant="outline" onClick={() => downloadCv(selectedApplication.id)}><Download className="mr-2 h-4 w-4" />Download CV</Button>
                       </div>
-                    ) : <p className="text-sm text-muted-foreground">Belum ada dokumen CV.</p>}
+                    ) : <p className="text-sm text-muted-foreground">Kandidat belum meng-upload CV.</p>}
                   </Card>
                 </TabsContent>
                 <TabsContent value="timeline" className="mt-5">
