@@ -53,6 +53,9 @@ export function ApplicantManagement() {
   const [hrNote, setHrNote] = useState("");
   const [internalRating, setInternalRating] = useState(0);
   const queryClient = useQueryClient();
+  const signedUrlFn = useServerFn(getSignedCvUrl);
+  const exportFn = useServerFn(exportApplicationsCsv);
+  const notifyFn = useServerFn(notifyStatusChange);
 
   const { data: applications, isLoading } = useQuery({
     queryKey: ["admin-applications", statusFilter],
