@@ -71,12 +71,14 @@ function JobDetailPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("applicants")
-        .select("id")
+        .select("id, cv_path, cv_url, full_name, phone")
         .eq("user_id", user!.id)
         .maybeSingle();
-      return data as { id: string } | null;
+      return data as { id: string; cv_path: string | null; cv_url: string | null; full_name: string | null; phone: string | null } | null;
     },
   });
+
+  const hasCv = Boolean(applicant?.cv_path || applicant?.cv_url);
 
   const { data: existingApplication } = useQuery({
     queryKey: ["existing-application", jobId, applicant?.id],
