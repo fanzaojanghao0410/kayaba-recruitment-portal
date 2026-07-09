@@ -97,6 +97,7 @@ function JobDetailPage() {
   const apply = useMutation({
     mutationFn: async () => {
       if (!user) throw new Error("Silakan masuk terlebih dahulu.");
+      if (!hasCv) throw new Error("Anda harus meng-upload CV di halaman Profil sebelum melamar.");
 
       let applicantId = applicant?.id;
       if (!applicantId) {
