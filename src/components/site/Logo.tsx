@@ -1,4 +1,5 @@
-import logoImage from "@/assets/logo.png";
+import logoAsset from "@/assets/kayaba/kayaba-logo.png.asset.json";
+const logoImage = logoAsset.url;
 
 export function Logo({ 
   className = "", 
