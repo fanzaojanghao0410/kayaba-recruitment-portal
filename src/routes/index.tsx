@@ -25,8 +25,10 @@ import {
   productLines,
   uxTrustSignals,
 } from "@/constants/company";
-import heroImg from "@/assets/hero-factory.jpg";
-import aboutImg from "@/assets/about-factory.jpg";
+import heroAsset from "@/assets/kayaba/kayaba-bg.png.asset.json";
+import product4wAsset from "@/assets/kayaba/product-4w.png.asset.json";
+const heroImg = heroAsset.url;
+const aboutImg = product4wAsset.url;
 
 export const Route = createFileRoute("/")({
   component: HomePage,
