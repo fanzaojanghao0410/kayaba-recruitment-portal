@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SiteShell } from "@/components/site/SiteShell";
 import { companyProfile, corporateStats, culturePillars, productLines } from "@/constants/company";
-import aboutImg from "@/assets/about-factory.jpg";
-import heroImg from "@/assets/hero-factory.jpg";
+import heroAsset from "@/assets/kayaba/kayaba-bg.png.asset.json";
+import product2wAsset from "@/assets/kayaba/product-2w.png.asset.json";
+const aboutImg = product2wAsset.url;
+const heroImg = heroAsset.url;
 
 export const Route = createFileRoute("/about")({
   component: AboutPage,
